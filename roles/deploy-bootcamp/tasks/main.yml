@@ -1,0 +1,50 @@
+- name: Download Artifact from Artifactory
+  get_url:
+    url: https://dotnetchenme.jfrog.io/artifactory/default-generic-local/artifacts.zip
+    dest: "{{ artifact_dest }}"
+    mode: '0400'
+    username: chenme@etoro.com
+    password: "{{ pass }}"
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ app_dest }}"
+    state: directory
+    mode: '0755'
+
+- name: Extract artifact
+  ansible.builtin.unarchive:
+    src: "{{ artifact_dest }}"
+    dest: "{{ app_dest }}"
+    remote_src: yes
+
+- name: Copy KeyVault.json template
+  ansible.builtin.template:
+    src: KeyVault.json.j2
+    dest: "/tmp/KeyVault.json"
+
+
+- name: Run Coolapp
+  ansible.builtin.shell: "nohup {{ app_dest }}/BootcapProject.WebService </dev/null >/dev/null 2>&1 &"
+
+- name: HealthCheck
+  uri:
+    url: http://localhost/index.html
+    method: GET
+    status_code: 200
+  register: healthcheck
+  tags: ['healthcheck']
+
+- name: Everything is OK
+  ansible.builtin.debug:
+    msg: OK!
+  when: healthcheck.status == 200
+  tags: ['healthcheck']
+
+
+- name: Everything is FAILING!
+  ansible.builtin.debug:
+    msg: FAIL!
+  when: healthcheck.status != 200
+  tags: ['healthcheck']
+

@@ -1,0 +1,31 @@
+- name: playbook 
+  become: true 
+  hosts: webservers 
+
+  vars: 
+    # jenkins_hostname: jenkins.jonathan
+    dotnet_package: "dotnet-sdk-3.1"
+    java_packages:
+      - openjdk-8-jdk
+    version: "1.0.0"
+    artifact_dest: "/tmp/chenapp-{{ version }}.tar"
+    app_dest: "/tmp/chenapp-{{ version }}/ubuntu.16.04-x64"
+  
+  roles:
+    - role: ocha.dotnet-core
+    - role: deploy-bootcamp
+      tags: ['deploy']
+
+
+  # tasks:
+  #   - name: Execute the command 
+  #     ansible.builtin.shell: whoami 
+
+  # vars:
+  #   pip_install_packages:
+  #     - name: docker
+  #   version: "1.0.0"
+  #   app_dest: "/tmp/coolapp-{{ version }}"
+
+  # roles:
+  #   - geerlingguy.docker
